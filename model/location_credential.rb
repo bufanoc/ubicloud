@@ -97,6 +97,25 @@ class LocationCredential < Sequel::Model
       client
     end
   end
+
+  def networks_client
+    @networks_client ||= Google::Cloud::Compute::V1::Networks::Rest::Client.new do |config|
+      config.credentials = parsed_credentials
+    end
+  end
+
+  def regional_crm_client(region)
+    @regional_crm_clients ||= {}
+    @regional_crm_clients[region] ||= begin
+      client = Google::Apis::CloudresourcemanagerV3::CloudResourceManagerService.new
+      client.root_url = "https://#{region}-cloudresourcemanager.googleapis.com/"
+      client.authorization = Google::Auth::ServiceAccountCredentials.make_creds(
+        json_key_io: StringIO.new(credentials_json),
+        scope: "https://www.googleapis.com/auth/cloud-platform"
+      )
+      client
+    end
+  end
 end
 
 # Table: location_credential

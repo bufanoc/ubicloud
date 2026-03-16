@@ -166,6 +166,41 @@ RSpec.describe LocationCredential do
       expect(client1).to be(client2)
     end
 
+    it "creates a networks client" do
+      client = instance_double(Google::Cloud::Compute::V1::Networks::Rest::Client)
+      expect(Google::Cloud::Compute::V1::Networks::Rest::Client).to receive(:new).and_yield(
+        instance_double(Google::Cloud::Compute::V1::Networks::Rest::Client::Configuration).tap {
+          expect(it).to receive(:credentials=).with(location_credential.parsed_credentials)
+        }
+      ).and_return(client)
+      expect(location_credential.networks_client).to be(client)
+    end
+
+    it "creates a regional CRM client with zone-specific URL" do
+      creds = instance_double(Google::Auth::ServiceAccountCredentials)
+      expect(Google::Auth::ServiceAccountCredentials).to receive(:make_creds).with(
+        json_key_io: an_instance_of(StringIO),
+        scope: "https://www.googleapis.com/auth/cloud-platform"
+      ).and_return(creds)
+
+      client = location_credential.regional_crm_client("us-central1-a")
+      expect(client).to be_a(Google::Apis::CloudresourcemanagerV3::CloudResourceManagerService)
+      expect(client.root_url).to eq("https://us-central1-a-cloudresourcemanager.googleapis.com/")
+      expect(client.authorization).to eq(creds)
+    end
+
+    it "caches regional CRM clients per zone and returns distinct clients for different zones" do
+      creds = instance_double(Google::Auth::ServiceAccountCredentials)
+      allow(Google::Auth::ServiceAccountCredentials).to receive(:make_creds).and_return(creds)
+
+      client_a1 = location_credential.regional_crm_client("us-central1-a")
+      client_a2 = location_credential.regional_crm_client("us-central1-a")
+      client_b = location_credential.regional_crm_client("us-central1-b")
+      expect(client_a1).to be(client_a2)
+      expect(client_a1).not_to be(client_b)
+      expect(client_b.root_url).to eq("https://us-central1-b-cloudresourcemanager.googleapis.com/")
+    end
+
     it "is associated with a location" do
       location_credential
       expect(location.location_credential).to eq(location_credential)
