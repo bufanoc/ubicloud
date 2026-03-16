@@ -75,6 +75,46 @@ RSpec.describe LocationCredential do
       expect(location_credential.zones_client).to be(client)
     end
 
+    it "creates a subnetworks client" do
+      client = instance_double(Google::Cloud::Compute::V1::Subnetworks::Rest::Client)
+      expect(Google::Cloud::Compute::V1::Subnetworks::Rest::Client).to receive(:new).and_yield(
+        instance_double(Google::Cloud::Compute::V1::Subnetworks::Rest::Client::Configuration).tap {
+          expect(it).to receive(:credentials=).with(location_credential.parsed_credentials)
+        }
+      ).and_return(client)
+      expect(location_credential.subnetworks_client).to be(client)
+    end
+
+    it "creates a zone_operations client" do
+      client = instance_double(Google::Cloud::Compute::V1::ZoneOperations::Rest::Client)
+      expect(Google::Cloud::Compute::V1::ZoneOperations::Rest::Client).to receive(:new).and_yield(
+        instance_double(Google::Cloud::Compute::V1::ZoneOperations::Rest::Client::Configuration).tap {
+          expect(it).to receive(:credentials=).with(location_credential.parsed_credentials)
+        }
+      ).and_return(client)
+      expect(location_credential.zone_operations_client).to be(client)
+    end
+
+    it "creates a region_operations client" do
+      client = instance_double(Google::Cloud::Compute::V1::RegionOperations::Rest::Client)
+      expect(Google::Cloud::Compute::V1::RegionOperations::Rest::Client).to receive(:new).and_yield(
+        instance_double(Google::Cloud::Compute::V1::RegionOperations::Rest::Client::Configuration).tap {
+          expect(it).to receive(:credentials=).with(location_credential.parsed_credentials)
+        }
+      ).and_return(client)
+      expect(location_credential.region_operations_client).to be(client)
+    end
+
+    it "creates a global_operations client" do
+      client = instance_double(Google::Cloud::Compute::V1::GlobalOperations::Rest::Client)
+      expect(Google::Cloud::Compute::V1::GlobalOperations::Rest::Client).to receive(:new).and_yield(
+        instance_double(Google::Cloud::Compute::V1::GlobalOperations::Rest::Client::Configuration).tap {
+          expect(it).to receive(:credentials=).with(location_credential.parsed_credentials)
+        }
+      ).and_return(client)
+      expect(location_credential.global_operations_client).to be(client)
+    end
+
     it "is associated with a location" do
       location_credential
       expect(location.location_credential).to eq(location_credential)

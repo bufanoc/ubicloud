@@ -26,9 +26,9 @@ end
 #  location_id       | uuid                     | NOT NULL
 #  firewall_priority | integer                  |
 # Indexes:
-#  vm_private_subnet_pkey                          | PRIMARY KEY btree (id)
-#  private_subnet_project_firewall_priority_idx    | UNIQUE btree (project_id, firewall_priority) WHERE firewall_priority IS NOT NULL
-#  private_subnet_project_id_location_id_name_uidx | UNIQUE btree (project_id, location_id, name)
+#  vm_private_subnet_pkey                                | PRIMARY KEY btree (id)
+#  private_subnet_project_id_location_id_name_uidx       | UNIQUE btree (project_id, location_id, name)
+#  private_subnet_project_location_firewall_priority_idx | UNIQUE btree (project_id, location_id, firewall_priority) WHERE firewall_priority IS NOT NULL
 # Check constraints:
 #  private_subnet_firewall_priority_check | (firewall_priority IS NULL OR firewall_priority >= 1000 AND firewall_priority <= 8998 AND (firewall_priority % 2) = 0)
 # Foreign key constraints:

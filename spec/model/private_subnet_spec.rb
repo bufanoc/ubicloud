@@ -30,7 +30,7 @@ RSpec.describe PrivateSubnet do
   describe "random ip generation" do
     it "returns random private ipv4" do
       private_subnet
-      expect(SecureRandom).to receive(:random_number).with(59).and_return(5)
+      expect(SecureRandom).to receive(:random_number).with(58).and_return(5)
       expect(private_subnet.random_private_ipv4.to_s).to eq "10.9.39.9/32"
     end
 
@@ -54,7 +54,7 @@ RSpec.describe PrivateSubnet do
       end
 
       it "returns random private ipv4" do
-        expect(SecureRandom).to receive(:random_number).with(59).and_return(1, 2)
+        expect(SecureRandom).to receive(:random_number).with(58).and_return(1, 2)
         expect(private_subnet.random_private_ipv4.to_s).to eq "10.9.39.6/32"
       end
 
@@ -391,7 +391,7 @@ RSpec.describe PrivateSubnet do
       loc = Location.create(name: "us-west-2", provider: "aws", project_id: prj.id,
         display_name: "aws-us-west-2", ui_name: "AWS US West 2", visible: true)
       LocationCredential.create_with_id(loc, access_key: "test-access-key", secret_key: "test-secret-key")
-      LocationAwsAz.create(location_id: loc.id, az: "a", zone_id: "usw2-az1")
+      LocationAz.create(location_id: loc.id, az: "a", zone_id: "usw2-az1")
       loc
     }
 

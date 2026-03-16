@@ -42,6 +42,30 @@ class LocationCredential < Sequel::Model
       config.credentials = parsed_credentials
     end
   end
+
+  def subnetworks_client
+    @subnetworks_client ||= Google::Cloud::Compute::V1::Subnetworks::Rest::Client.new do |config|
+      config.credentials = parsed_credentials
+    end
+  end
+
+  def zone_operations_client
+    @zone_operations_client ||= Google::Cloud::Compute::V1::ZoneOperations::Rest::Client.new do |config|
+      config.credentials = parsed_credentials
+    end
+  end
+
+  def region_operations_client
+    @region_operations_client ||= Google::Cloud::Compute::V1::RegionOperations::Rest::Client.new do |config|
+      config.credentials = parsed_credentials
+    end
+  end
+
+  def global_operations_client
+    @global_operations_client ||= Google::Cloud::Compute::V1::GlobalOperations::Rest::Client.new do |config|
+      config.credentials = parsed_credentials
+    end
+  end
 end
 
 # Table: location_credential
