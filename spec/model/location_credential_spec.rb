@@ -210,6 +210,18 @@ RSpec.describe LocationCredential do
       expect(location_credential.storage_client).to be(client)
     end
 
+    it "creates an IAM client" do
+      creds = instance_double(Google::Auth::ServiceAccountCredentials)
+      expect(Google::Auth::ServiceAccountCredentials).to receive(:make_creds).with(
+        json_key_io: an_instance_of(StringIO),
+        scope: "https://www.googleapis.com/auth/cloud-platform"
+      ).and_return(creds)
+
+      client = location_credential.iam_client
+      expect(client).to be_a(Google::Apis::IamV1::IamService)
+      expect(client.authorization).to eq(creds)
+    end
+
     it "is associated with a location" do
       location_credential
       expect(location.location_credential).to eq(location_credential)
