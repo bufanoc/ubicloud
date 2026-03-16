@@ -125,6 +125,47 @@ RSpec.describe LocationCredential do
       expect(location_credential.addresses_client).to be(client)
     end
 
+    it "creates a compute client" do
+      client = instance_double(Google::Cloud::Compute::V1::Instances::Rest::Client)
+      expect(Google::Cloud::Compute::V1::Instances::Rest::Client).to receive(:new).and_yield(
+        instance_double(Google::Cloud::Compute::V1::Instances::Rest::Client::Configuration).tap {
+          expect(it).to receive(:credentials=).with(location_credential.parsed_credentials)
+        }
+      ).and_return(client)
+      expect(location_credential.compute_client).to be(client)
+    end
+
+    it "creates a network_firewall_policies client" do
+      client = instance_double(Google::Cloud::Compute::V1::NetworkFirewallPolicies::Rest::Client)
+      expect(Google::Cloud::Compute::V1::NetworkFirewallPolicies::Rest::Client).to receive(:new).and_yield(
+        instance_double(Google::Cloud::Compute::V1::NetworkFirewallPolicies::Rest::Client::Configuration).tap {
+          expect(it).to receive(:credentials=).with(location_credential.parsed_credentials)
+        }
+      ).and_return(client)
+      expect(location_credential.network_firewall_policies_client).to be(client)
+    end
+
+    it "creates a CRM client" do
+      creds = instance_double(Google::Auth::ServiceAccountCredentials)
+      expect(Google::Auth::ServiceAccountCredentials).to receive(:make_creds).with(
+        json_key_io: an_instance_of(StringIO),
+        scope: "https://www.googleapis.com/auth/cloud-platform"
+      ).and_return(creds)
+
+      client = location_credential.crm_client
+      expect(client).to be_a(Google::Apis::CloudresourcemanagerV3::CloudResourceManagerService)
+      expect(client.authorization).to eq(creds)
+    end
+
+    it "memoizes the CRM client" do
+      creds = instance_double(Google::Auth::ServiceAccountCredentials)
+      expect(Google::Auth::ServiceAccountCredentials).to receive(:make_creds).once.and_return(creds)
+
+      client1 = location_credential.crm_client
+      client2 = location_credential.crm_client
+      expect(client1).to be(client2)
+    end
+
     it "is associated with a location" do
       location_credential
       expect(location.location_credential).to eq(location_credential)

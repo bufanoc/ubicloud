@@ -4,6 +4,8 @@ require_relative "../model"
 require "aws-sdk-ec2"
 require "aws-sdk-iam"
 require "google/cloud/compute/v1"
+require "google/apis/cloudresourcemanager_v3"
+require "googleauth"
 
 class LocationCredential < Sequel::Model
   plugin ResourceMethods, encrypted_columns: [:access_key, :secret_key, :credentials_json]
@@ -70,6 +72,29 @@ class LocationCredential < Sequel::Model
   def addresses_client
     @addresses_client ||= Google::Cloud::Compute::V1::Addresses::Rest::Client.new do |config|
       config.credentials = parsed_credentials
+    end
+  end
+
+  def compute_client
+    @compute_client ||= Google::Cloud::Compute::V1::Instances::Rest::Client.new do |config|
+      config.credentials = parsed_credentials
+    end
+  end
+
+  def network_firewall_policies_client
+    @network_firewall_policies_client ||= Google::Cloud::Compute::V1::NetworkFirewallPolicies::Rest::Client.new do |config|
+      config.credentials = parsed_credentials
+    end
+  end
+
+  def crm_client
+    @crm_client ||= begin
+      client = Google::Apis::CloudresourcemanagerV3::CloudResourceManagerService.new
+      client.authorization = Google::Auth::ServiceAccountCredentials.make_creds(
+        json_key_io: StringIO.new(credentials_json),
+        scope: "https://www.googleapis.com/auth/cloud-platform"
+      )
+      client
     end
   end
 end

@@ -146,6 +146,17 @@ class Prog::Vm::Nexus < Prog::Base
           end
         end
         "Vm::Aws::Nexus"
+      elsif location.gcp?
+        storage_volumes.each_with_index do |volume, disk_index|
+          VmStorageVolume.create(
+            vm_id: vm.id,
+            size_gib: volume[:size_gib],
+            boot: volume[:boot],
+            use_bdev_ubi: false,
+            disk_index:
+          )
+        end
+        "Vm::Gcp::Nexus"
       else
         "Vm::Metal::Nexus"
       end
@@ -167,6 +178,7 @@ class Prog::Vm::Nexus < Prog::Base
           "ch_version" => ch_version,
           "firmware_version" => firmware_version,
           "alternative_families" => alternative_families,
+          "exclude_availability_zones" => exclude_availability_zones,
           "private_subnet_id" => subnet.id
         }]
       ) { it.id = vm.id }
