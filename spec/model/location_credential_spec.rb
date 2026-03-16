@@ -201,6 +201,15 @@ RSpec.describe LocationCredential do
       expect(client_b.root_url).to eq("https://us-central1-b-cloudresourcemanager.googleapis.com/")
     end
 
+    it "creates a storage client" do
+      client = instance_double(Google::Cloud::Storage::Project)
+      expect(Google::Cloud::Storage).to receive(:new).with(
+        project_id: "test-project",
+        credentials: {"type" => "service_account", "project_id" => "test-project"}
+      ).and_return(client)
+      expect(location_credential.storage_client).to be(client)
+    end
+
     it "is associated with a location" do
       location_credential
       expect(location.location_credential).to eq(location_credential)
