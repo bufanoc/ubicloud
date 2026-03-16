@@ -3,10 +3,13 @@
 require_relative "../model"
 require "aws-sdk-ec2"
 require "aws-sdk-iam"
+require "google/cloud/compute/v1"
 
 class LocationCredential < Sequel::Model
-  plugin ResourceMethods, encrypted_columns: [:access_key, :secret_key]
+  plugin ResourceMethods, encrypted_columns: [:access_key, :secret_key, :credentials_json]
   many_to_one :location, key: :id
+
+  # AWS credential methods
 
   def credentials
     @credentials ||= if assume_role
@@ -27,17 +30,32 @@ class LocationCredential < Sequel::Model
   def aws_iam_account_id
     @account_id ||= Aws::STS::Client.new(region: location.name, credentials:).get_caller_identity.account
   end
+
+  # GCP credential methods
+
+  def parsed_credentials
+    @parsed_credentials ||= JSON.parse(credentials_json)
+  end
+
+  def zones_client
+    @zones_client ||= Google::Cloud::Compute::V1::Zones::Rest::Client.new do |config|
+      config.credentials = parsed_credentials
+    end
+  end
 end
 
 # Table: location_credential
 # Columns:
-#  access_key  | text |
-#  secret_key  | text |
-#  id          | uuid | PRIMARY KEY
-#  assume_role | text |
+#  access_key            | text |
+#  secret_key            | text |
+#  id                    | uuid | PRIMARY KEY
+#  assume_role           | text |
+#  project_id            | text |
+#  service_account_email | text |
+#  credentials_json      | text |
 # Indexes:
 #  location_credential_pkey | PRIMARY KEY btree (id)
 # Check constraints:
-#  location_credential_single_auth_mechanism | (access_key IS NOT NULL AND secret_key IS NOT NULL AND assume_role IS NULL OR access_key IS NULL AND secret_key IS NULL AND assume_role IS NOT NULL)
+#  location_credential_single_auth_mechanism | (access_key IS NOT NULL AND secret_key IS NOT NULL AND assume_role IS NULL AND credentials_json IS NULL OR access_key IS NULL AND secret_key IS NULL AND assume_role IS NOT NULL AND credentials_json IS NULL OR access_key IS NULL AND secret_key IS NULL AND assume_role IS NULL AND credentials_json IS NOT NULL AND project_id IS NOT NULL AND service_account_email IS NOT NULL)
 # Foreign key constraints:
 #  location_credential_id_fkey | (id) REFERENCES location(id)
