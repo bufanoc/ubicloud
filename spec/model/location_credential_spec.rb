@@ -115,6 +115,16 @@ RSpec.describe LocationCredential do
       expect(location_credential.global_operations_client).to be(client)
     end
 
+    it "creates an addresses client" do
+      client = instance_double(Google::Cloud::Compute::V1::Addresses::Rest::Client)
+      expect(Google::Cloud::Compute::V1::Addresses::Rest::Client).to receive(:new).and_yield(
+        instance_double(Google::Cloud::Compute::V1::Addresses::Rest::Client::Configuration).tap {
+          expect(it).to receive(:credentials=).with(location_credential.parsed_credentials)
+        }
+      ).and_return(client)
+      expect(location_credential.addresses_client).to be(client)
+    end
+
     it "is associated with a location" do
       location_credential
       expect(location.location_credential).to eq(location_credential)

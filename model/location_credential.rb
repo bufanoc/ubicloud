@@ -66,6 +66,12 @@ class LocationCredential < Sequel::Model
       config.credentials = parsed_credentials
     end
   end
+
+  def addresses_client
+    @addresses_client ||= Google::Cloud::Compute::V1::Addresses::Rest::Client.new do |config|
+      config.credentials = parsed_credentials
+    end
+  end
 end
 
 # Table: location_credential
