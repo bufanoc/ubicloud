@@ -132,7 +132,7 @@ GEM
       logger
     faraday-net_http (3.4.2)
       net-http (~> 0.5)
-    faraday-retry (2.3.2)
+    faraday-retry (2.4.0)
       faraday (~> 2.0)
     ferrum (0.17.1)
       addressable (~> 2.5)
@@ -140,6 +140,7 @@ GEM
       concurrent-ruby (~> 1.1)
       webrick (~> 1.7)
       websocket-driver (~> 0.7)
+    ffi (1.17.2)
     ffi (1.17.2-aarch64-linux-gnu)
     ffi (1.17.2-aarch64-linux-musl)
     ffi (1.17.2-arm-linux-gnu)
@@ -313,10 +314,10 @@ GEM
     rodish (2.0.1)
       optparse
     rotp (6.3.0)
-    rqrcode (3.1.0)
+    rqrcode (3.2.0)
       chunky_png (~> 1.0)
       rqrcode_core (~> 2.0)
-    rqrcode_core (2.0.0)
+    rqrcode_core (2.1.0)
     rspec (3.13.2)
       rspec-core (~> 3.13.0)
       rspec-expectations (~> 3.13.0)
@@ -521,7 +522,7 @@ DEPENDENCIES
   webmock
 
 RUBY VERSION
-   ruby 3.4.9p82
+   ruby 4.0.2p0
 
 BUNDLED WITH
    2.7.1
