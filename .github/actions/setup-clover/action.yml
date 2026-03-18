@@ -28,6 +28,18 @@ runs:
         sudo systemctl start postgresql
         until pg_isready -q; do sleep 1; done
 
+    - name: check permission
+      shell: bash
+      run: |
+        ls -lah /opt
+        ls -lah /opt/hostedtoolcache
+        stat -c '%a %n' /opt/hostedtoolcache/Ruby
+        ls -lah /opt/hostedtoolcache/Ruby || true
+        ls -lah /opt/hostedtoolcache/Ruby/3.4.8 || true
+        ls -lah /opt/hostedtoolcache/Ruby/3.4.9 || true
+        ls -lah /opt/hostedtoolcache/Ruby/3.4.8/arm64 || true
+        ls -lah /opt/hostedtoolcache/Ruby/3.4.9/arm64 || true
+
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
