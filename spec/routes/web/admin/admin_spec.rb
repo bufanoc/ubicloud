@@ -862,6 +862,35 @@ RSpec.describe CloverAdmin do
     expect(st.reload.schedule).to be_within(5).of(schedule + 300)
   end
 
+  it "shows empty semaphore list for strand without semaphore_names" do
+    st = Strand.create(prog: "Test", label: "test")
+    visit "/model/Strand/#{st.ubid}"
+    expect(page.title).to eq "Ubicloud Admin - Strand #{st.ubid}"
+
+    click_link "Increment Semaphore"
+    expect(page).to have_select("name", options: [""])
+  end
+
+  it "supports incrementing semaphore of strand" do
+    vp = VmPool.create(
+      size: 3,
+      vm_size: "standard-2",
+      boot_image: "img",
+      location_id: Location::HETZNER_FSN1_ID,
+      storage_size_gib: 86
+    )
+    st = Strand.create(prog: "Vm::VmPool", label: "wait") { it.id = vp.id }
+    visit "/model/Strand/#{st.ubid}"
+    expect(page.title).to eq "Ubicloud Admin - Strand #{st.ubid}"
+
+    click_link "Increment Semaphore"
+    select "destroy", from: "name"
+    click_button "Increment Semaphore"
+    expect(page).to have_flash_notice("Incremented semaphore")
+    expect(page.title).to eq "Ubicloud Admin - Strand #{st.ubid}"
+    expect(st.semaphores.map(&:name)).to include("destroy")
+  end
+
   it "supports restarting Vms" do
     vm = Prog::Vm::Nexus.assemble("dummy-public key", Project.create(name: "Default").id, name: "dummy-vm-1").subject
     fill_in "UBID, UUID, or prefix:term", with: vm.ubid

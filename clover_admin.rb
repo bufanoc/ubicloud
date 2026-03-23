@@ -315,6 +315,19 @@ class CloverAdmin < Roda
       end,
       "extend" => object_action("Extend Schedule", flash: "Extended schedule", params: {minutes: {typecast: :pos_int!, type: "number", attr: {min: 1, max: 1440}}}) do |obj, minutes|
         obj.this.update(schedule: Sequel.date_add(:schedule, minutes:))
+      end,
+      "incr_semaphore" => object_action("Increment Semaphore", flash: "Incremented semaphore", params: {
+        name: {
+          typecast: :str!,
+          type: "select",
+          add_blank: true,
+          options: ->(obj) {
+            subject_class = obj.subject.class
+            subject_class.respond_to?(:semaphore_names) ? subject_class.semaphore_names.map(&:name) : []
+          }
+        }
+      }) do |obj, name|
+        Semaphore.incr(obj.id, name)
       end
     },
     "Vm" => {
@@ -755,7 +768,7 @@ class CloverAdmin < Roda
             action = actions[key]
             action_type = action.type
             @label = action.label
-            @params = action.params
+            @params = action.params.transform_values { |v| v[:options].is_a?(Proc) ? v.merge(options: v[:options].call(@obj)) : v }
 
             r.get(action_type != :form) do
               if action_type == :direct
