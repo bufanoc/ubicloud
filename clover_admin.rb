@@ -328,6 +328,16 @@ class CloverAdmin < Roda
         }
       }) do |obj, name|
         Semaphore.incr(obj.id, name)
+      end,
+      "decr_semaphore" => object_action("Decrement Semaphore", flash: "Decremented semaphore", params: {
+        name: {
+          typecast: :str!,
+          type: "select",
+          add_blank: true,
+          options: ->(obj) { obj.semaphores.map(&:name) }
+        }
+      }) do |obj, name|
+        Semaphore.where(strand_id: obj.id, name:).destroy
       end
     },
     "Vm" => {

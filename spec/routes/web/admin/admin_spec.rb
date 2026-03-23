@@ -889,6 +889,13 @@ RSpec.describe CloverAdmin do
     expect(page).to have_flash_notice("Incremented semaphore")
     expect(page.title).to eq "Ubicloud Admin - Strand #{st.ubid}"
     expect(st.semaphores.map(&:name)).to include("destroy")
+
+    click_link "Decrement Semaphore"
+    select "destroy", from: "name"
+    click_button "Decrement Semaphore"
+    expect(page).to have_flash_notice("Decremented semaphore")
+    expect(page.title).to eq "Ubicloud Admin - Strand #{st.ubid}"
+    expect(st.reload.semaphores.map(&:name)).not_to include("destroy")
   end
 
   it "supports restarting Vms" do
