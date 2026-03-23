@@ -71,17 +71,11 @@ RSpec.describe Prog::Vm::HostNexus do
       described_class.assemble("127.0.0.1", provider_name: HostProvider::HETZNER_PROVIDER_NAME, server_identifier: "1")
     end
 
-    it "checks whether both spdk and vhost_block_backend version is set" do
-      expect { described_class.assemble("127.0.0.1", spdk_version: "someversion") }.to raise_error("SPDK and VhostBlockBackend cannot be set simultaneously")
-    end
-
-    it "checks that both spdk and vhost_block_backend version is set although one is nil" do
-      st = described_class.assemble("127.0.0.1", spdk_version: "someversion", vhost_block_backend_version: nil)
-      expect(st.stack.first["spdk_version"]).to eq("someversion")
+    it "stores vhost_block_backend settings in stack" do
+      st = described_class.assemble("127.0.0.1", vhost_block_backend_version: nil)
       expect(st.stack.first["vhost_block_backend_version"]).to be_nil
 
       st = described_class.assemble("1.2.3.4")
-      expect(st.stack.first["spdk_version"]).to be_nil
       expect(st.stack.first["vhost_block_backend_version"]).to eq(Config.vhost_block_backend_version)
     end
   end
@@ -268,31 +262,6 @@ RSpec.describe Prog::Vm::HostNexus do
           "allocation_weight" => 100
         }).and_call_original
       expect { nx.setup_storage_backend }.to hop("start", "Storage::SetupVhostBlockBackend")
-    end
-
-    it "pushes the SetupSpdk program when spdk is set and vhost_block_backend is not set" do
-      nx = described_class.new(described_class.assemble("1.2.3.4", spdk_version: "someversion", vhost_block_backend_version: nil))
-      expect(nx).to receive(:push).with(Prog::Storage::SetupSpdk,
-        {
-          "version" => "someversion",
-          "allocation_weight" => 100,
-          "start_service" => false
-        }).and_call_original
-      expect { nx.setup_storage_backend }.to hop("start", "Storage::SetupSpdk")
-    end
-
-    it "hops once SetupSpdk has returned" do
-      nx.strand.retval = {"msg" => "SPDK was setup"}
-      vmh = instance_double(VmHost)
-      spdk_installation = SpdkInstallation.new(cpu_count: 4)
-      allow(vmh).to receive_messages(
-        spdk_installations: [spdk_installation],
-        total_cores: 48,
-        total_cpus: 96
-      )
-      allow(nx).to receive(:vm_host).and_return(vmh)
-      expect(vmh).to receive(:update).with({used_cores: 2})
-      expect { nx.setup_storage_backend }.to hop("download_boot_images")
     end
 
     it "hops once SetupVhostBlockBackend has returned" do
