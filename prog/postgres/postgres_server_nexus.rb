@@ -569,8 +569,13 @@ SQL
     end
 
     when_restart_set? do
-      decr_restart
-      push Prog::Postgres::Restart
+      register_deadline("complete_restart", 2 * 60)
+      if daemonized_restart
+        decr_restart
+        unregister_deadline("complete_restart")
+      else
+        nap 1
+      end
     end
 
     when_refresh_walg_credentials_set? do
@@ -624,9 +629,6 @@ SQL
       hop_configure
     end
 
-    reap(fallthrough: true)
-    nap 5 unless strand.children_dataset.where(prog: "Postgres::Restart").empty?
-
     if available?
       decr_checkup
       decr_recycle_unavailable_server
@@ -635,7 +637,7 @@ SQL
 
     postgres_server.incr_recycle_unavailable_server unless postgres_server.recycle_unavailable_server_set?
 
-    bud Prog::Postgres::Restart
+    daemonized_restart
     nap 5
   end
 
@@ -829,5 +831,17 @@ SQL
 
   def version
     postgres_server.version
+  end
+
+  def daemonized_restart
+    case vm.sshable.d_check("postgres_restart")
+    when "Succeeded"
+      vm.sshable.d_clean("postgres_restart")
+      return true
+    when "Failed", "NotStarted"
+      vm.sshable.d_run("postgres_restart", "sudo", "postgres/bin/restart", postgres_server.version)
+    end
+
+    false
   end
 end
