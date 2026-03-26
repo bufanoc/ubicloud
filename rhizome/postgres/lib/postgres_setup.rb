@@ -34,6 +34,6 @@ class PostgresSetup
   end
 
   def create_cluster
-    r "pg_createcluster #{@version} main --port=5432 --start --locale=C.UTF8"
+    r "pg_createcluster #{@version} main --port=5432 --locale=C.UTF8"
   end
 end
