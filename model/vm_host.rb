@@ -451,6 +451,39 @@ class VmHost < Sequel::Model
       project_id: Config.monitoring_service_project_id
     }
   end
+
+  def move_to_location(target_location_id)
+    target_location = Location.with_pk!(target_location_id)
+    if location_id == target_location.id
+      Clog.emit("VmHost is already in this location")
+      return
+    end
+
+    target_image_names = if target_location.id == Location::GITHUB_RUNNERS_ID
+      %w[github-ubuntu-2404 github-ubuntu-2204]
+    else
+      %w[ubuntu-noble ubuntu-jammy almalinux-9 debian-12 postgres-ubuntu-2204]
+    end
+
+    # Check which images this host already has (activated, at current version)
+    existing_images = boot_images_dataset
+      .exclude(activated_at: nil)
+      .select_set([:name, :version])
+
+    # For each expected image, download if missing at current Config version
+    DB.ignore_duplicate_queries do
+      target_image_names.each do |image_name|
+        config_name = image_name.tr("-", "_") + "_version"
+        version = Config.send(config_name)
+
+        next if existing_images.include?([image_name, version])
+
+        download_boot_image(image_name, version:)
+      end
+    end
+
+    update(location_id: target_location.id)
+  end
 end
 
 # Table: vm_host
